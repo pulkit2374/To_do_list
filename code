@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>To-Do List App</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div class="container">
+    <h1>To-Do List</h1>
+    <div class="form">
+      <input type="text" id="taskInput" placeholder="Enter a task">
+      <input type="date" id="dueDateInput">
+      <button onclick="addTask()">Add</button>
+    </div>
+    <div id="taskList"></div>
+  </div>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  background-color: #2B2730;
+  color: #E966A0;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+h1 {
+  text-align: center;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.form input[type="text"],
+.form input[type="date"] {
+  flex: 1 1 auto;
+  margin-right: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+}
+
+.form button {
+  flex: 0 0 auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  background-color: #6554AF;
+  color: white;
+  cursor: pointer;
+}
+
+.card {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #9575DE;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #6554AF;
+}
+
+.card.completed {
+  background-color: #4CAF50;
+}
+
+.card.overdue {
+  background-color: #E966A0;
+}
+
+.card.not-completed {
+  background-color: #9575DE;
+}
+
+.task-checkbox {
+  margin-right: 10px;
+}
+
+.delete-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.delete-button-icon {
+  color: white;
+  font-size: 16px;
+}
+
+.card.warning {
+  background-color: #E966A0;
+}
+
+@media screen and (max-width: 480px) {
+  .form input[type="text"],
+  .form input[type="date"],
+  .form button {
+    flex: 0 0 100%;
+    margin-bottom: 10px;
+  }
+}
+  </style>
+
+  <script>
+// Load tasks from local storage
+const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+// Display tasks
+function displayTasks() {
+  const taskList = document.getElementById('taskList');
+  taskList.innerHTML = '';
+
+  tasks.forEach((task, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'task-checkbox';
+    checkbox.checked = task.completed || false;
+    checkbox.addEventListener('change', () => toggleTaskStatus(index));
+
+    const taskText = document.createElement('span');
+    taskText.textContent = task.name;
+
+    const dueDate = document.createElement('span');
+    dueDate.textContent = task.dueDate;
+    dueDate.className = 'due-date';
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-button';
+    deleteButton.innerHTML = '<i class="delete-button-icon">&#10006;</i>';
+    deleteButton.addEventListener('click', () => deleteTask(index));
+
+    card.appendChild(checkbox);
+    card.appendChild(taskText);
+    card.appendChild(dueDate);
+    card.appendChild(deleteButton);
+    taskList.appendChild(card);
+
+    // Check if task is overdue
+    const isOverdue = isTaskOverdue(task.dueDate);
+    const isChecked = checkbox.checked;
+
+    if (isOverdue && !isChecked) {
+      card.classList.add('overdue');
+    } else if (!isChecked) {
+      card.classList.add('not-completed');
+    } else {
+      card.classList.add('completed');
+    }
+  });
+}
+
+
+// Add a new task
+function addTask() {
+  const taskInput = document.getElementById('taskInput');
+  const dueDateInput = document.getElementById('dueDateInput');
+  const taskName = taskInput.value.trim();
+  const dueDate = dueDateInput.value;
+
+  if (taskName !== '') {
+    const newTask = {
+      name: taskName,
+      dueDate: dueDate,
+      completed: false
+    };
+
+    tasks.push(newTask);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    taskInput.value = '';
+    dueDateInput.value = '';
+    displayTasks();
+  }
+}
+
+// Delete a task
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  displayTasks();
+}
+
+// Toggle task status
+function toggleTaskStatus(index) {
+  tasks[index].completed = !tasks[index].completed;
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  displayTasks();
+}
+
+
+// Check if task is overdue
+function isTaskOverdue(dueDate) {
+  const now = new Date().setHours(0, 0, 0, 0);
+  const taskDueDate = new Date(dueDate).setHours(0, 0, 0, 0);
+  return now > taskDueDate;
+}
+
+displayTasks();
+  </script>
+</body>
+</html>
